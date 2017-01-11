@@ -1,0 +1,524 @@
+swagger: '2.0'
+info:
+  title: Capital One Rewards API
+  version: '1.0'
+paths:
+  /rewards/accounts:
+    get:
+      description: ''
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: >-
+            The call was successfully made, though this does not necessarily
+            mean a list of accounts was returned; a call that provides the
+            creditCardLastFour as a query parameter could result in a successful
+            call but an empty response.
+          schema:
+            $ref: '#/definitions/RewardsAccountsResponse'
+        '400':
+          description: >-
+            An invalid query parameter was provided or the value for a valid
+            query parameter was malformed. The code value in the response body
+            specifies the errant query parameter. See_Error_Codes_, below, for
+            details.
+          schema:
+            type: string
+        '401':
+          description: >-
+            The call did not contain a valid access token and is therefore not
+            authorized.
+          schema:
+            type: string
+        '403':
+          description: >-
+            Access to all available accounts is forbidden because the customer
+            declined to authorize, the call included an invalid client ID or
+            client secret, the customer’s online profile cannot be found, or the
+            accounts were redacted by entitlements. The code value provided in
+            the response will provide some additional information about the
+            specific problem; see Error Codes, below, for details.
+          schema:
+            type: string
+        '405':
+          description: >-
+            The requested HTTP method isn’t supported; the code value in the
+            response body specifies the errant method name. See Error Codes,
+            below, for details.
+          schema:
+            type: string
+        '500':
+          description: General server error.
+          schema:
+            type: string
+        '502':
+          description: Internal connection failure.
+          schema:
+            type: string
+        '503':
+          description: The server is unavailable due to heavy traffic or rate limiting.
+          schema:
+            type: string
+      parameters:
+        - name: creditCardLastFour
+          required: false
+          in: query
+          description: >-
+            When this parameter is set, the returned list of rewards accounts is
+            limited to the one associated with the credit card account whose
+            number ends with the provided last four digits. Note that the
+            provided last four digits must be those that appear on the primary
+            account holder’s credit card.   If the credit card account
+            designated by the provided last four digits does not have a
+            corresponding rewards account, an empty array is returned.   If the
+            credit card account designated by the provided last four digits has
+            been redacted by entitlements rules, an HTTP 403 error will be
+            returned.
+          type: string
+  '/rewards/accounts/{rewardsAccountReferenceId}':
+    get:
+      description: ''
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: >-
+            The call was successfully made, and the rewards account details were
+            included in the response.
+          schema:
+            $ref: '#/definitions/RewardsAccountsRewardsAccountReferenceIdResponse'
+        '400':
+          description: >-
+            An invalid query parameter was provided or the value for a valid
+            query parameter was malformed. The code value in the response body
+            specifies the errant query parameter. See Error Codes, below,
+            section for details.
+          schema:
+            type: string
+        '401':
+          description: >-
+            The call did not contain a valid access token and is therefore not
+            authorized.
+          schema:
+            type: string
+        '403':
+          description: >-
+            Access to account details is forbidden because the customer declined
+            to authorize, the call included an invalid client ID or client
+            secret, the customer’s online profile cannot be found, or the
+            accounts were redacted by entitlements. The code value provided in
+            the response will provide some additional information about the
+            specific problem; see Error Codes, below, for details.
+          schema:
+            type: string
+        '404':
+          description: The provided rewardsAccountReferenceId is invalid or unknown.
+          schema:
+            type: string
+        '405':
+          description: >-
+            The requested HTTP method isn’t supported; the code value in the
+            response body specifies the errant method name. See Error Codes,
+            below, for details.
+          schema:
+            type: string
+        '500':
+          description: General server error.
+          schema:
+            type: string
+        '502':
+          description: Internal connection failure.
+          schema:
+            type: string
+        '503':
+          description: The server is unavailable due to heavy traffic or rate limiting.
+          schema:
+            type: string
+      parameters:
+        - name: rewardsAccountReferenceId
+          required: true
+          in: path
+          description: >-
+            The unique, opaque identifier for a rewards account. This value can
+            be obtained by calling Retrieve rewards accounts.
+          type: string
+definitions:
+  RewardsAccountsResponse:
+    type: object
+    properties:
+      rewardsAccounts:
+        description: >-
+          An array containing the requested rewards account records, excluding
+          any whose return was forbidden by Capital One entitlements rules and
+          any for which the owning customer did not grant access permission.  
+          The array can be empty if the creditCardLastFour query parameter is
+          used and the given value does not match any available accounts.
+        type: object
+        properties:
+          rewardsAccountReferenceId:
+            type: string
+            description: >-
+              The unique identifier for a rewards account; use this value in the
+              Retrieve rewards account details call to obtain the details for a
+              specific rewards account.   Always returned.
+          accountDisplayName:
+            type: string
+            description: >-
+              The display name assigned to the rewards account; consists of the
+              following values:     issuing bank (Capital One)   processing
+              network (Visa or MasterCard)   product type (Venture or
+              Quicksilver, for example)   rewards currency (miles, cash back, or
+              points)   last four digits on the primary cardholder’s card    
+              This is the recommended text to display to your users to identify
+              a specific rewards account.
+          rewardsCurrency:
+            type: string
+            description: >-
+              An enum that identifies the currency type associated with the
+              rewards account. Valid values are:     Cash   Miles   Points    
+              Always returned.      Note   Both points and miles are convertible
+              to a cash value for redemption; see the
+              redemptionOpportunities.redemptionRate property (returned by the
+              Retrieve rewards account details API) for more information.
+          productAccountType:
+            type: string
+            description: >-
+              Identifies the type of product with which this rewards account is
+              associated or linked. Currently, the only supported product type
+              is:     CreditCard     Always returned.
+          creditCardAccount:
+            type: object
+            description: >-
+              The creditCardAccount associated with the rewards account; this
+              value is always returned when productAccountType is CreditCard.
+          issuer:
+            type: string
+            description: >-
+              The name of the bank that issued the creditCardAccount associated
+              with the rewards account; currently, the only supported value is
+              Capital One.   Always returned.
+          product:
+            type: string
+            description: >-
+              The product name of the card associated with the credit card
+              account (for example, Venture or Quicksilver).   Always returned.
+          network:
+            type: string
+            description: >-
+              The processing network associated with the credit card account.
+              Valid values are:     Visa   MasterCard     Always returned.
+          lastFour:
+            type: string
+            description: >-
+              The last four digits of the account number embossed on the primary
+              account holder’s plastic credit card; e.g., 0123.   Always
+              returned.
+          isBusinessAccount:
+            type: boolean
+            description: >-
+              Indicates whether or not the credit card is issued under a
+              business account.   Always returned.
+  RewardsAccountsRewardsAccountReferenceIdResponse:
+    type: object
+    properties:
+      accountDisplayName:
+        type: string
+        description: >-
+          The display name assigned to the rewards account; consists of the
+          following values:     issuing bank (Capital One)   processing network
+          (Visa or MasterCard)   product type (Venture or Quicksilver, for
+          example)   rewards currency (miles, cash back, or points)   last four
+          digits on the primary cardholder’s card     This is the recommended
+          text to display to your users to identify a specific rewards account.
+      rewardsBalance:
+        type: number
+        description: >-
+          The latest updated rewards account balance, accurate as of the time
+          indicated by balanceTimestamp. The balance is expressed in the
+          account’s rewardsCurrency (miles, points, or cash back); miles and
+          points values are expressed as integers. To calculate the purchase
+          power of the rewards balance, use the information provided in the
+          array of available redemptionOpportunities.   Always returned.
+      balanceTimestamp:
+        type: string
+        description: >-
+          The point in time at which the rewards balance was last updated or is
+          known to be accurate; specified in ISO 8601 format
+          YYYY-MM-DDThh:mm:ssTZD   Always returned.
+      rewardsCurrency:
+        type: string
+        description: >-
+          An enum that identifies the currency type associated with the rewards
+          account. Valid values are:     Cash   Miles   Points     Always
+          returned.      Note   Both points and miles are convertible to a cash
+          value for redemption; see the redemptionOpportunities.redemptionRate
+          property (returned by the Retrieve rewards account details API) for
+          more information.
+      canRedeem:
+        type: boolean
+        description: >-
+          Indicates whether or not the account’s rewards can be redeemed; if the
+          value is false, see redemptionLockReasonDescription for more
+          information. Note that the full array of redemptionOpportunities that
+          would be available if canRedeem were true will still be returned.  
+          Always returned.
+      redemptionLockReasonDescription:
+        type: string
+        description: >-
+          Provides a natural-language description of the reason a rewards
+          account is currently ineligible for redemption (canRedeem is false),
+          and information about how the rewards account owner can learn more
+          about his or her account status.
+      canTransferOut:
+        type: boolean
+        description: >-
+          Indicates whether or not the account’s rewards are eligible to be
+          transferred out to another account.   Always returned.   Note that the
+          value of canRedeem overrides this value; transfers out are not
+          permitted if canRedeem is false, regardless of the value assigned to
+          this property.
+      canTransferIn:
+        type: boolean
+        description: >-
+          Indicates whether or not the account is eligible to receive rewards
+          transferred in from another account.   Always returned.
+      redemptionOpportunities:
+        description: >-
+          An array that describes each of the redemption opportunities currently
+          available for this account, including the category and subcategory,
+          the redemptionRate (used to convert miles or points to a cash value),
+          and the calculated cashValue.   If no redemptionOpportunities are
+          available (for example, if rewardsBalance = 0 or is too small to
+          qualify for a redemption), an empty array will be returned. Note,
+          however, that the array will be fully populated even when canRedeem is
+          false, to illustrate the opportunities that will become available when
+          the redemption lock is released.   You can use the
+          redemptionOpportunities details to customize the display of the
+          account’s rewards balance to map to a customer’s expressed preferences
+          or interests, to a special offer or purchase opportunity, or to a
+          specific product or set of products available on your site.
+        type: object
+        properties:
+          category:
+            type: string
+            description: >-
+              The category assigned to a specific redemption opportunity; valid
+              values are:     Travel - a group of travel-related redemption
+              opportunity subcategories   Cash - a group of cash-related
+              redemption opportunity subcategories   GiftCard - a group of
+              gift-card related redemption opportunity subcategories   Charity -
+              a group of charity-related redemption opportunity
+              subcategories     Always returned.
+          categoryDescription:
+            type: string
+            description: >-
+              A natural-language description of the redemption category;
+              provided for display purposes.
+          subcategory:
+            type: string
+            description: >-
+              A further refinement of the redemption opportunity’s assigned
+              category value. Note that the subcategory value includes the
+              associated category name (Travel.Booking, for example, is a
+              subcategory of the Travel category.)     Travel.Erase - reimburses
+              the cardholder for travel expenses already incurred  
+              Travel.Booking - pays for new travel-related purchases  
+              Travel.Special - pays for special hotel offers   Cash.Check -
+              issues a check to the cardholder   Cash.Credit - applies a credit
+              to the account   Cash.Purchase - pays for new non-travel
+              purchases   Cash.Erase - reimburses the cardholder for previous
+              purchases   Cash.AutoRedeem - automatically redeems rewards at
+              fixed intervals   GiftCard.Mail - issues a gift card that is sent
+              through the mail   GiftCard.Special - issues a gift card under a
+              special offer program   GiftCard.Electronic - issues an electronic
+              gift card   Charity.Donate - donates the rewards value to a
+              charity     Always returned.
+          subcategoryDescription:
+            type: string
+            description: >-
+              A natural-language description of the redemption subcategory;
+              provided for display purposes.
+          displaySequenceNumber:
+            type: number
+            description: >-
+              A value that illustrates the recommended order in which a specific
+              redemption opportunity should be displayed in a list of
+              redemptionOpportunities. Each value has the format x.y, where x
+              suggests the order in which the category values should be listed,
+              and y suggests the order in which subcategory values should be
+              listed under the parent category.      Note   For programs that
+              include tiered subcategories, values will be returned in the
+              format x.yz, where z indicates the order in which tiers defined
+              for subcategory y should be listed.      For example, consider the
+              following set of values:          Category Subcategory Sequence
+              value     Cash Cash.Erase 2.4   Cash Cash.Credit 2.2   Travel
+              Travel.Booking 1.2     The suggested order for listing these
+              redemptionOpportunities is:         1.2 Travel.Booking   2.2
+              Cash.Credit   2.4 Cash.Erase        Always returned.
+          tierMinCashValue:
+            type: number
+            description: ''
+          tierMaxCashValue:
+            type: number
+            description: >-
+              A tiered rewards opportunity is one that defines ranges of
+              redemption values that are available when a minimum amount of
+              rewards currency (typically, miles) has been accumulated. For
+              example:            Redemption Value Miles Needed     $0.01 to
+              $150 15,000   $150.01 to $350 35,000   $350.01 to $600 60,000  
+              $600.01 and greater The cost of travel x 100     For a tiered
+              redemption opportunity, the tierMinCashValue and tierMaxCashValue
+              provide, respectively, the low and high dollar values that define
+              the redemption range applicable to that opportunity. For the
+              highest tier, no tierMaxCashValue is returned; the maximum is
+              calculated based on the rewardsBalance or redemptionAmount (which
+              will have the same value) and the redemptionRate, and provided in
+              the cashValue property.   The array of redemptionOpportunities
+              will include all those for which the current account balance
+              renders the account eligible. For example, if a tiered travel
+              program defined the tiers shown in the table above, and the
+              rewardsBalance was 35,621 miles, the array of redemption
+              opportunities would include one for the first tier (cash value
+              range $0 to $150) and one for the second tier (cash value range
+              $150.01 to $350). Redemption opportunities that fall into the two
+              remaining tiers will not be included in the array, since the
+              account isn’t currently eligible to redeem them.   Note that any
+              redemption of a tiered opportunity that isn’t defined as the
+              highest tier costs the full amount of currency specified, even if
+              the value of the purchase is less than the maximum allowed. For
+              example, in the program described above, a redemption of $200.00
+              would reduce the account balance by the full 35,000 miles; the
+              same number of miles would be required for a higher redemption (up
+              to $350) and a lower one ($150.01 or more) in the same tier.   For
+              a redemption opportunity that’s defined as the highest tier, the
+              cost of the redemption in terms of account currency is calculated
+              based on the redemptionRate assigned to the opportunity. See
+              redemptionAmount.   These values are not provided for non-tiered
+              opportunities.
+          minRedemptionAmount:
+            type: number
+            description: >-
+              For a tiered opportunity, the minRedemptionAmount defines the
+              amount of currency required for the tier (in the example above,
+              the Miles Needed value).   For a non-tiered opportunity,
+              minRedemptionAmount is returned if the program defines one — for
+              example, if an automatic redemption program defines a minimum
+              amount that can be redeemed. If the program does not define a
+              minimum, no value is returned.   Note that this value is defined
+              in units of the account’s rewardsCurrency (miles, points, or cash
+              back).
+          redemptionAmount:
+            type: number
+            description: >-
+              The amount that can be redeemed for this opportunity given the
+              account’s current rewardsBalance, expressed in terms of the
+              rewardsCurrency (miles, points, or cash back).   For a non-tiered
+              opportunity, redemptionAmount will be equal to minRedemptionAmount
+              if a minRedemptionAmount is defined and its value is less than the
+              rewardsBalance; otherwise, redemptionAmount will be equal to the
+              rewardsBalance.   For a tiered opportunity that’s not in the
+              highest tier, this value specifies the minimum balance required to
+              qualify for a given tier, and also represents the amount of
+              currency that will be deducted from the account for a redemption
+              in the cash value range defined for that tier (see
+              tierMinCashValue, tierMaxCashValue).   For an opportunity in the
+              highest tier, this value is equal to rewardsBalance, and is not
+              necessarily the amount of currency that will be deducted from the
+              account for a redemption; in the highest tier, the cost of a
+              redemption is calculated based on the defined redemptionRate.  
+              For example, for the tiers illustrated above and a rewardsBalance
+              of 65,000 miles:     for an opportunity in the first tier
+              (redemption value up to $150), the redemptionAmount would be
+              15,000 miles, and any redemption in the defined cash value range
+              would cost the entire 15,000 miles, leaving a 50,000 mile balance;
+              and   for an opportunity in the highest tier, the redemptionAmount
+              would be 65,000 miles (the full rewardsBalance), but a redemption
+              whose value is greater than $600.01 would cost only the actual
+              value times 100: a flight that cost $625, for example, would
+              reduce the account value by 62,500 miles, leaving a 2,500 mile
+              balance.     Note that, for any tier except the highest tier, the
+              redemptionAmount is not necessarily the same as the
+              rewardsBalance, but the rewardsBalance will be equal to or higher
+              than the redemptionAmount.   Always returned.
+          redemptionRate:
+            type: number
+            description: >-
+              The rate at which the account’s rewardsCurrency is converted to
+              dollars and cents (US dollars, when Accept-Language is set to a US
+              value; or Canadian dollars, when Accept-Language is set to a CA
+              value). The calculated value is provided in the cashValue
+              property.   This value is provided for all non-tiered
+              subcategories, and for tiered subcategories (such as the
+              highest-tiered subcategory, or some gift card tiered
+              subcategories) that do not have a fixed redemptionAmount.  
+              Currently, since en-US is the only supported value, all cash
+              conversions will be to US dollars.
+          cashValue:
+            type: number
+            description: >-
+              The calculated cash value of the redemptionAmount.   For
+              opportunities that have a redemptionRate defined, this value is
+              determined by multiplying the redemptionAmount by the
+              redemptionRate.   If no redemptionRate is defined, cashValue will
+              be equal to tierMaxCashValue.   Always returned.
+          cashDisplayValue:
+            type: string
+            description: >-
+              The cashValue formatted as a string, with the appropriate currency
+              indicator and localized number formatting (for example,
+              $1,234.56).   Always returned.
+      productAccountType:
+        type: string
+        description: >-
+          Identifies the type of product with which this rewards account is
+          associated or linked. Currently, the only supported product type
+          is:     CreditCard     Always returned.
+      creditCardAccount:
+        description: >-
+          The creditCardAccount associated with the rewards account; this value
+          is always returned when productAccountType is CreditCard.
+        type: object
+        properties:
+          issuer:
+            type: string
+            description: >-
+              The name of the bank that issued the creditCardAccount associated
+              with the rewards account; currently, the only supported value is
+              Capital One.   Always returned.
+          product:
+            type: string
+            description: >-
+              The product name of the card associated with the credit card
+              account (for example, Venture or Quicksilver).   Always returned.
+          network:
+            type: string
+            description: >-
+              The processing network associated with the credit card account.
+              Valid values are:     Visa   MasterCard     Always returned.
+          lastFour:
+            type: string
+            description: >-
+              The last four digits of the account number embossed on the primary
+              account holder’s plastic credit card; e.g., 0123.   Always
+              returned.
+          isBusinessAccount:
+            type: boolean
+            description: >-
+              Indicates whether or not the credit card is issued under a
+              business account.   Always returned.
+      primaryAccountHolder:
+        description: >-
+          Customer record containing information about the primary account
+          holder for the rewards account.   Always returned.
+        type: object
+        properties:
+          firstName:
+            type: string
+            description: ''
+          lastName:
+            type: string
+            description: >-
+              The first and last name of the primary account holder.   Always
+              returned.
+
