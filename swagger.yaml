@@ -523,3 +523,8 @@ definitions:
             description: >-
               The first and last name of the primary account holder.   Always
               returned.
+securityDefinitions:
+  capitalOneOAuth2:
+    type: oauth2
+    flow: accessCode
+    authorizationUrl: https://api.capitalone.com/oauth2/authorize
