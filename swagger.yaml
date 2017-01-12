@@ -5,7 +5,8 @@ info:
 paths:
   /rewards/accounts:
     get:
-      description: ''
+      description: >-
+        Retrieves a list of the active rewards accounts associated with a customer; returns only those accounts for which the customer has granted access permission and those which have passed the internal Capital One entitlements check.
       produces:
         - application/json
       responses:
@@ -78,7 +79,8 @@ paths:
           type: string
   '/rewards/accounts/{rewardsAccountReferenceId}':
     get:
-      description: ''
+      description: >-
+        Retrieves detailed information about the referenced rewards account, including the currency in which rewards are accumulated (miles, points, or cash back), the rewards account balance, and whether or not the balance is eligible for redemption.
       produces:
         - application/json
       responses:
@@ -521,4 +523,3 @@ definitions:
             description: >-
               The first and last name of the primary account holder.   Always
               returned.
-
